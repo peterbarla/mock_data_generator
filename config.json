@@ -1,0 +1,46 @@
+{ 
+    "schema":
+        {
+            "schema_name": "edc_meta",
+            "schema_tables": [
+                {
+                    "table_name": "edc_meta.etl_files",
+                    "attributes": [
+                        { "attribute_name": "group_id", "attribute_type": "INTEGER" },
+                        { "attribute_name": "category", "attribute_type": "VARCHAR", "size": 7 },
+                        { "attribute_name": "sub_category", "attribute_type": "VARCHAR", "size": 7 },
+                        { "attribute_name": "file_name_mask", "attribute_type": "VARCHAR", "size": 25},
+                        { "attribute_name": "last_arrived_file", "attribute_type": "VARCHAR", "size": 25},
+                        { "attribute_name": "last_arrived_file_timestamp", "attribute_type": "TIMESTAMP" },
+                        { "attribute_name": "lwm", "attribute_type": "TIMESTAMP" },
+                        { "attribute_name": "hwm", "attribute_type": "TIMESTAMP" },
+                        { "attribute_name": "sla", "attribute_type": "VARCHAR", "size": 25 }
+                    ]
+                },
+
+                {
+                    "table_name": "edc_meta.etl_files_history",
+                    "attributes": [
+                        { "attribute_name": "group_id", "attribute_type": "INTEGER" },
+                        { "attribute_name": "category", "attribute_type": "VARCHAR", "size": 10 },
+                        { "attribute_name": "sub_category", "attribute_type": "VARCHAR", "size": 10 },
+                        { "attribute_name": "file_name", "attribute_type": "VARCHAR", "size": 25 },
+                        { "attribute_name": "file_arrival_date", "attribute_type": "TIMESTAMP"},
+                        { "attribute_name": "available_per_sla", "attribute_type": "BOOLEAN" }
+                    ]
+                }
+            ]
+        },
+
+    "user_preferences": {
+        "category_list": ["pnr", "ticket", "aeroplan", "dcs", "mdm"],
+        "group_id_list": [1, 2, 3, 4, 5]
+    },
+
+    "database_connection": {
+        "host": "localhost",
+        "database": "peterdb",
+        "user": "peter",
+        "password": "Pepecsek1"
+    }
+}

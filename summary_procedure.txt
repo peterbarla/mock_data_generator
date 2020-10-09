@@ -1,0 +1,44 @@
+CREATE OR REPLACE PROCEDURE sp_etl_files_summary()
+AS $$
+BEGIN
+	IF EXISTS(
+		SELECT DISTINCT s.category 
+		FROM edc_meta.etl_files_summary s 
+		RIGHT JOIN edc_meta.etl_files_history h	
+		ON s.category = h.category AND s.available_per_sla = h.available_per_sla AND s.yr = EXTRACT(YEAR FROM h.file_arrival_date) AND s.mnth = EXTRACT(MONTH FROM h.file_arrival_date)
+		WHERE s.category IS NULL)
+	THEN
+		INSERT INTO edc_meta.etl_files_summary
+		SELECT h.category, h.available_per_sla, COUNT(h.available_per_sla) as file_count, EXTRACT(YEAR FROM file_arrival_date) as yr, EXTRACT(MONTH FROM file_arrival_date) as mnth --s.category
+		FROM edc_meta.etl_files_summary s 
+		RIGHT JOIN edc_meta.etl_files_history h	
+		ON s.category = h.category AND s.available_per_sla = h.available_per_sla AND s.yr = EXTRACT(YEAR FROM h.file_arrival_date) AND s.mnth = EXTRACT(MONTH FROM h.file_arrival_date)
+		WHERE s.category IS NULL
+		GROUP BY h.category, h.available_per_sla, EXTRACT(YEAR FROM file_arrival_date), EXTRACT(MONTH FROM file_arrival_date);
+		raise notice 'first';
+	END IF;
+
+	IF EXISTS (
+		SELECT DISTINCT s.category, s.available_per_sla 
+		FROM edc_meta.etl_files_summary s 
+		RIGHT JOIN edc_meta.etl_files_history h	
+		ON s.category = h.category AND s.available_per_sla = h.available_per_sla AND s.yr = EXTRACT(YEAR FROM h.file_arrival_date) AND s.mnth = EXTRACT(MONTH FROM h.file_arrival_date)
+		WHERE s.category IS NOT NULL)
+	THEN
+		CREATE TEMPORARY TABLE stg_etl_files_summary AS (
+		SELECT h.category, h.available_per_sla, COUNT(h.available_per_sla) as file_count, EXTRACT(YEAR FROM file_arrival_date) as yr, EXTRACT(MONTH FROM file_arrival_date) as mnth
+		FROM edc_meta.etl_files_history h		
+		LEFT JOIN edc_meta.etl_files_summary s
+		ON s.category = h.category AND s.available_per_sla = h.available_per_sla AND s.yr = EXTRACT(YEAR FROM file_arrival_date) AND s.mnth = EXTRACT(MONTH FROM file_arrival_date)
+		WHERE s.category IS NOT NULL
+		GROUP BY h.category, h.available_per_sla, EXTRACT(YEAR FROM file_arrival_date), EXTRACT(MONTH FROM file_arrival_date));
+		raise notice 'second';
+	
+		UPDATE edc_meta.etl_files_summary
+		SET file_count = (SELECT h.file_count FROM stg_etl_files_summary h WHERE h.category = edc_meta.etl_files_summary.category 
+						  	AND h.available_per_sla = edc_meta.etl_files_summary.available_per_sla 
+				 			AND h.yr = edc_meta.etl_files_summary.yr AND h.mnth = edc_meta.etl_files_summary.mnth )
+		WHERE edc_meta.etl_files_summary.category IS NOT NULL;
+	END IF;
+END;
+$$ LANGUAGE plpgsql;
