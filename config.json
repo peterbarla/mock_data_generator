@@ -39,8 +39,8 @@
 
     "database_connection": {
         "host": "localhost",
-        "database": "peterdb",
-        "user": "peter",
-        "password": "Pepecsek1"
+        "database": "db_name",
+        "user": "your_username",
+        "password": "your_password"
     }
 }
